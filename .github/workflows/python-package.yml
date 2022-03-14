@@ -29,5 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run apply
+      env: 
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
       run: |
         python3 runLSLreserves.py
