@@ -20,7 +20,7 @@ def cleanUp(str):
 
 dayOfWeekToday = datetime.utcnow().astimezone(KST).weekday()
 
-firebaseConfig = json.load(os.environ['FIREBASE_CONFIG'])
+firebaseConfig = json.loads(os.environ['FIREBASE_CONFIG'])
 
 firebase = pyrebase.initialize_app(firebaseConfig)
 db = firebase.database()
