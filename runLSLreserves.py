@@ -81,7 +81,7 @@ for userUuid, reserves in totalReserveList.items():
             response = json.loads(res.content.decode('utf-8'))
 
             if response['result']['success'] == True:
-                print(f"SUCCESS) {response['slrnNo']}")
+                print(f"SUCCESS) {response['slrnNo']} (pd: {applyData['lrnPd']})")
                 # 성공
             else:
                 print('Fail')
