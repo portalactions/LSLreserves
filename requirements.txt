@@ -1,7 +1,6 @@
 requests
 bs4
 pyrebase
-json
 os
 datetime
 pytz
