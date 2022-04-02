@@ -8,8 +8,8 @@ from datetime import datetime
 import pytz
 
 KST = pytz.timezone('Asia/Seoul')
-SIGNIN_URL = "http://academic.petapop.com/sign/actionLogin.do"
-APPLY_URL = "http://academic.petapop.com/self/requestSelfLrn.do"
+SIGNIN_URL = "http://www.cbshself.kr/sign/actionLogin.do"
+APPLY_URL = "http://www.cbshself.kr/self/requestSelfLrn.do"
 
 
 def cleanUp(str):
