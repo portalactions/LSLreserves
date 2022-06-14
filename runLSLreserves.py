@@ -1,88 +1,88 @@
-import requests as req
-from bs4 import BeautifulSoup
-import pyrebase
-import json
-import os
+# import requests as req
+# from bs4 import BeautifulSoup
+# import pyrebase
+# import json
+# import os
 
-from datetime import datetime
-import pytz
+# from datetime import datetime
+# import pytz
 
-KST = pytz.timezone('Asia/Seoul')
-SIGNIN_URL = "http://www.cbshself.kr/sign/actionLogin.do"
-APPLY_URL = "http://www.cbshself.kr/self/requestSelfLrn.do"
-
-
-def cleanUp(str):
-    strList = str.split()
-    result = " ".join(strList)
-    return result
+# KST = pytz.timezone('Asia/Seoul')
+# SIGNIN_URL = "http://www.cbshself.kr/sign/actionLogin.do"
+# APPLY_URL = "http://www.cbshself.kr/self/requestSelfLrn.do"
 
 
-dayOfWeekToday = datetime.utcnow().astimezone(KST).weekday()
+# def cleanUp(str):
+#     strList = str.split()
+#     result = " ".join(strList)
+#     return result
 
-firebaseConfig = json.loads(os.environ['FIREBASE_CONFIG'])
 
-# with open("C:\\React\\cbshportal\\src\\auth\\firebase-config.json") as f:
-#     firebaseConfig = json.load(f)
+# dayOfWeekToday = datetime.utcnow().astimezone(KST).weekday()
 
-firebase = pyrebase.initialize_app(firebaseConfig)
-db = firebase.database()
+# firebaseConfig = json.loads(os.environ['FIREBASE_CONFIG'])
 
-totalReserveList = db.child('reservedLSL').get().val()
-userData = db.child('users/students').get().val()
-homeroomTeacherCodes = db.child('config/homeroomTeacher').get().val()
+# # with open("C:\\React\\cbshportal\\src\\auth\\firebase-config.json") as f:
+# #     firebaseConfig = json.load(f)
 
-for userUuid, reserves in totalReserveList.items():
+# firebase = pyrebase.initialize_app(firebaseConfig)
+# db = firebase.database()
 
-    print(f"For user [{userData[userUuid]['name']}]:")
+# totalReserveList = db.child('reservedLSL').get().val()
+# userData = db.child('users/students').get().val()
+# homeroomTeacherCodes = db.child('config/homeroomTeacher').get().val()
 
-    userCredential = userData[userUuid]["legacySelfLearnCredentials"]
-    userHomeroomClass = str(
-        userData[userUuid]["grade"]) + str(userData[userUuid]["classNumber"])
+# for userUuid, reserves in totalReserveList.items():
 
-    userHomeroomTeacherCode = homeroomTeacherCodes[userHomeroomClass]
+#     print(f"For user [{userData[userUuid]['name']}]:")
 
-    applyDatas = []
+#     userCredential = userData[userUuid]["legacySelfLearnCredentials"]
+#     userHomeroomClass = str(
+#         userData[userUuid]["grade"]) + str(userData[userUuid]["classNumber"])
 
-    for reserveIndex, eachReserve in enumerate(reserves):
-        if eachReserve['dayOfWeek'][dayOfWeekToday]:
-            print(f"RUN) Reserve #{reserveIndex} is for today.")
-            periods = eachReserve['periods']
+#     userHomeroomTeacherCode = homeroomTeacherCodes[userHomeroomClass]
 
-            applyData = {
-                'roomTcherId': userHomeroomTeacherCode,
-                'cchTcherId': eachReserve['conductingTeacherCode'],
-                'clssrmId': eachReserve['classroomCode'],
-                'actCode': eachReserve['actCode'],
-                'actCn': eachReserve['actContent'],
-                'sgnId': datetime.utcnow().astimezone(KST).strftime(r"%Y%m%d")
-            }
+#     applyDatas = []
 
-            for period in periods:
-                applyData['lrnPd'] = period
+#     for reserveIndex, eachReserve in enumerate(reserves):
+#         if eachReserve['dayOfWeek'][dayOfWeekToday]:
+#             print(f"RUN) Reserve #{reserveIndex} is for today.")
+#             periods = eachReserve['periods']
 
-                applyDatas.append(applyData.copy())
+#             applyData = {
+#                 'roomTcherId': userHomeroomTeacherCode,
+#                 'cchTcherId': eachReserve['conductingTeacherCode'],
+#                 'clssrmId': eachReserve['classroomCode'],
+#                 'actCode': eachReserve['actCode'],
+#                 'actCn': eachReserve['actContent'],
+#                 'sgnId': datetime.utcnow().astimezone(KST).strftime(r"%Y%m%d")
+#             }
+
+#             for period in periods:
+#                 applyData['lrnPd'] = period
+
+#                 applyDatas.append(applyData.copy())
         
-        else:
-            print(f"RUN) Reserve #{reserveIndex} is not for today.")
-            continue
+#         else:
+#             print(f"RUN) Reserve #{reserveIndex} is not for today.")
+#             continue
 
-    with req.session() as sess:
-        res = sess.post(SIGNIN_URL, data=userCredential)
-        rawPage = BeautifulSoup(res.content.decode('utf-8'), "html.parser")
+#     with req.session() as sess:
+#         res = sess.post(SIGNIN_URL, data=userCredential)
+#         rawPage = BeautifulSoup(res.content.decode('utf-8'), "html.parser")
 
-        if cleanUp(rawPage.li.get_text()) == "선생님은 가입해주세요.":
-            print(f"FAIL) Failed to login for {userData[userUuid]['name']}.")
-            # 로그인 실패
-            continue
+#         if cleanUp(rawPage.li.get_text()) == "선생님은 가입해주세요.":
+#             print(f"FAIL) Failed to login for {userData[userUuid]['name']}.")
+#             # 로그인 실패
+#             continue
 
-        for applyData in applyDatas:
-            res = sess.post(APPLY_URL, data=applyData)
-            response = json.loads(res.content.decode('utf-8'))
+#         for applyData in applyDatas:
+#             res = sess.post(APPLY_URL, data=applyData)
+#             response = json.loads(res.content.decode('utf-8'))
 
-            if response['result']['success'] == True:
-                print(f"SUCCESS) {response['slrnNo']} (pd: {applyData['lrnPd']})")
-                # 성공
-            else:
-                print('Fail')
-                # 실패
+#             if response['result']['success'] == True:
+#                 print(f"SUCCESS) {response['slrnNo']} (pd: {applyData['lrnPd']})")
+#                 # 성공
+#             else:
+#                 print('Fail')
+#                 # 실패
